@@ -79,51 +79,26 @@ the agreed algorithm. Only the hash is transmitted to the server. The
 server stores H(password) in its database. The plaintext password never
 leaves the client device.
 
-  ----------------------------------------------------------------------
-  **Party**              **Direction**           **Data**
-  ---------------------- ----------------------- -----------------------
-  Client                                         Computes H(password)
-
-  Client                 → Server                Sends: user_id,
-                                                 H(password)
-
-  Server                                         Stores H(password) in
-                                                 database
-  ----------------------------------------------------------------------
+| Partie | Direction | Données / Action |
+| :--- | :---: | :--- |
+| **Client** | | Calcule $H(password)$ |
+| **Client** | → Serveur | Envoie : `user_id`, `H(password)` |
+| **Serveur** | | Stocke `H(password)` dans la base de données |
 
 ### Phase 2 --- Authentication (per session)
 
 This phase uses a challenge-response mechanism with two fresh nonces to
 prevent replay attacks:
 
-  ----------------------------------------------------------------------
-  **Party**              **Direction**           **Data / Action**
-  ---------------------- ----------------------- -----------------------
-  Client                 → Server                Sends: user_id, Nc (Nc
-                                                 = fresh client nonce)
-
-  Server                                         Generates fresh Ns;
-                                                 retrieves H(password)
-                                                 from DB
-
-  Server                 → Client                Sends: Ns (server
-                                                 nonce)
-
-  Client                                         Computes: Hp =
-                                                 H(password); encrypts
-                                                 with ASCON
-
-  Client                 → Server                Sends: Msg =
-                                                 ASCON_Enc(K, nonce=Nc,
-                                                 assoc=Ns, plain=Hp),
-                                                 Tag
-
-  Server                                         Decrypts with ASCON;
-                                                 verifies Tag; compares
-                                                 Hp with stored value
-
-  Server                 → Client                Sends: OK or FAIL
-  ----------------------------------------------------------------------
+| Partie | Direction | Données / Action |
+| :--- | :---: | :--- |
+| **Client** | → Serveur | Envoie : `user_id`, `Nc` (Nonce client frais) |
+| **Serveur** | | Génère `Ns` frais ; récupère `H(password)` de la DB |
+| **Serveur** | → Client | Envoie : `Ns` (Nonce serveur) |
+| **Client** | | Calcule : `Hp = H(password)` ; chiffre avec ASCON |
+| **Client** | → Serveur | Envoie : `Msg = ASCON_Enc(K, nonce=Nc, assoc=Ns, plain=Hp)`, `Tag` |
+| **Serveur** | | Déchiffre avec ASCON ; vérifie le `Tag` ; compare `Hp` |
+| **Serveur** | → Client | Envoie : `OK` ou `FAIL` |
 
 ### Phase 3 --- Secure Session
 
@@ -133,27 +108,14 @@ can use this session key for subsequent encrypted communication.
 
 ## 3.3 Key Design Parameters
 
-  ----------------------------------------------------------------------
-  **Parameter**          **Value**               **Security Rationale**
-  ---------------------- ----------------------- -----------------------
-  ASCON Variant          Ascon-128               128-bit security level,
-                                                 16-byte key
-
-  ASCON Nonce            Nc (16 bytes)           Client-generated,
-                                                 unique per session
-
-  Associated Data        Ns (16 bytes)           Binds ciphertext to
-                                                 server\'s challenge
-
-  Plaintext              Hp = H(password)        32 bytes (SHA-256
-                                                 digest)
-
-  Session Key            32 bytes (random)       256-bit ephemeral key
-                                                 per session
-
-  Hash Comparison        hmac.compare_digest()   Constant-time: prevents
-                                                 timing attacks
-  ----------------------------------------------------------------------
+| Paramètre | Valeur | Raisonnement de Sécurité |
+| :--- | :--- | :--- |
+| **Variante ASCON** | Ascon-128 | [cite_start]Niveau de sécurité 128 bits, clé de 16 octets  |
+| **Nonce ASCON** | `Nc` (16 octets) | [cite_start]Généré par le client, unique par session  |
+| **Données Associées** | `Ns` (16 octets) | [cite_start]Lie le texte chiffré au défi (challenge) du serveur  |
+| **Texte en Clair** | `Hp = H(password)` | [cite_start]32 octets (condensat SHA-256)  |
+| **Clé de Session** | 32 octets (aléatoire) | [cite_start]Clé éphémère de 256 bits par session [cite: 48, 88] |
+| **Comparaison de Hash** | `hmac.compare_digest()` | [cite_start]Temps constant : prévient les attaques par analyse temporelle  |
 
 # 4. Implementation Details
 
@@ -321,27 +283,14 @@ of a random tag being valid). This protects against:
 
 ## 5.4 Protected Attack Surface
 
-  ----------------------------------------------------------------------
-  **Attack**             **Mechanism**           **Protection**
-  ---------------------- ----------------------- -----------------------
-  Eavesdropping          Passive interception of ASCON encryption of Hp
-                         messages                
-
-  Replay attack          Retransmit captured     Fresh Nc and Ns per
-                         session                 session
-
-  Identity impersonation Forge messages as       ASCON tag --- requires
-                         another user            key K
-
-  Message tampering      Modify ciphertext in    ASCON authentication
-                         transit                 tag
-
-  Password database leak Read server DB directly Only H(password)
-                                                 stored, not plaintext
-
-  Timing side channel    Measure hash comparison hmac.compare_digest()
-                         time                    constant-time
-  ----------------------------------------------------------------------
+| Attaque | Mécanisme | Protection |
+| :--- | :--- | :--- |
+| **Écoute clandestine** | Interception passive des messages | [cite_start]Chiffrement ASCON du hash `Hp` [cite: 107, 108, 120] |
+| **Attaque par rejeu** | Retransmission d'une session capturée | [cite_start]Nonces `Nc` et `Ns` frais par session [cite: 98, 120] |
+| **Usurpation d'identité** | Forger des messages comme un autre utilisateur | [cite_start]Tag ASCON — nécessite la clé secrète `K` [cite: 112, 115, 120] |
+| **Altération de message** | Modifier le texte chiffré en transit | [cite_start]Tag d'authentification ASCON [cite: 112, 114, 120] |
+| **Fuite de la base de données** | Lecture directe de la base du serveur | [cite_start]Seul le hash `H(password)` est stocké, pas le texte clair [cite: 120, 145] |
+| **Canal auxiliaire temporel** | Mesure du temps de comparaison des hashs | [cite_start]`hmac.compare_digest()` en temps constant [cite: 120, 148] |
 
 # 6. Performance Evaluation
 
