@@ -3,11 +3,6 @@
 **Design and Analysis of a Lightweight Authentication Protocol Using
 ASCON and Hash Functions**
 
-Academic Year 2024--2025
-
-Student: El Amrani Alae
-
-GCSI2
 
 # 1. Introduction
 
@@ -359,9 +354,9 @@ internal construction and software performance:
 
 | Algorithme | Design Interne | Sortie | Temps Moyen | Notes |
 | :--- | :--- | :---: | :---: | :--- |
-| **SHA-256** | Merkle-Damgaard | 256 bits | ~0.48 µs | [cite_start]Standard NIST, accélération matérielle sur x86 [cite: 126, 127] |
-| **SHA3-256** | Keccak sponge | 256 bits | ~0.72 µs | [cite_start]Résiste aux attaques par extension de longueur [cite: 126, 140] |
-| **BLAKE2b** | HAIFA + ChaCha | 256 bits | ~0.52 µs | [cite_start]Le plus rapide en logiciel ; utilisé dans WireGuard [cite: 126, 139] |
+| **SHA-256** | Merkle-Damgaard | 256 bits | ~0.48 µs | Standard NIST, accélération matérielle sur x86 |
+| **SHA3-256** | Keccak sponge | 256 bits | ~0.72 µs | Résiste aux attaques par extension de longueur |
+| **BLAKE2b** | HAIFA + ChaCha | 256 bits | ~0.52 µs | Le plus rapide en logiciel ; utilisé dans WireGuard |
 
 These results confirm that SHA-256 is the fastest on our machine, likely
 due to hardware acceleration.
