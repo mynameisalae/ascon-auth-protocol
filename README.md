@@ -357,21 +357,11 @@ desktop CPU. All three produce 256-bit (32-byte) digests, making them
 equivalent in security output size. The differences lie in their
 internal construction and software performance:
 
-  --------------------------------------------------------------------------------
-  **Algorithm**   **Internal        **Output**    **Avg Time**  **Notes**
-                  Design**                                      
-  --------------- ----------------- ------------- ------------- ------------------
-  SHA-256         Merkle-Damgaard   256 bits      \~0.48 µs     NIST standard, HW
-                                                                accel. On x86
-
-  SHA3-256        Keccak sponge     256 bits      \~0.72µs      Resists
-                                                                length-extension
-                                                                attacks
-
-  BLAKE2b         HAIFA + ChaCha    256 bits      \~0.52 µs     Fastest in
-                                                                software; used in
-                                                                WireGuard
-  --------------------------------------------------------------------------------
+| Algorithme | Design Interne | Sortie | Temps Moyen | Notes |
+| :--- | :--- | :---: | :---: | :--- |
+| **SHA-256** | Merkle-Damgaard | 256 bits | ~0.48 µs | [cite_start]Standard NIST, accélération matérielle sur x86 [cite: 126, 127] |
+| **SHA3-256** | Keccak sponge | 256 bits | ~0.72 µs | [cite_start]Résiste aux attaques par extension de longueur [cite: 126, 140] |
+| **BLAKE2b** | HAIFA + ChaCha | 256 bits | ~0.52 µs | [cite_start]Le plus rapide en logiciel ; utilisé dans WireGuard [cite: 126, 139] |
 
 These results confirm that SHA-256 is the fastest on our machine, likely
 due to hardware acceleration.
